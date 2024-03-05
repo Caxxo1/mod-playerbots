@@ -26,6 +26,16 @@ RandomPlayerbotFactory::RandomPlayerbotFactory(uint32 accountId) : accountId(acc
     availableRaces[CLASS_WARRIOR].push_back(RACE_UNDEAD_PLAYER);
     availableRaces[CLASS_WARRIOR].push_back(RACE_TAUREN);
     availableRaces[CLASS_WARRIOR].push_back(RACE_TROLL);
+    availableRaces[CLASS_WARRIOR].push_back(RACE_FEL_ORC); // TITLE Void Elf
+    availableRaces[CLASS_WARRIOR].push_back(RACE_NAGA); // TITLE Vulpera
+    availableRaces[CLASS_WARRIOR].push_back(RACE_BROKEN); // TITLE Nightborne
+    availableRaces[CLASS_WARRIOR].push_back(RACE_SKELETON); // TITLE Pandaren Horde
+    availableRaces[CLASS_WARRIOR].push_back(RACE_VRYKUL); // TITLE Worgen
+    availableRaces[CLASS_WARRIOR].push_back(RACE_TUSKARR); // TITLE Pandaren Alliance
+    availableRaces[CLASS_WARRIOR].push_back(RACE_TAUNKA); // TITLE Lightforged Draenei
+    availableRaces[CLASS_WARRIOR].push_back(RACE_NORTHREND_SKELETON); // TITLE Demon Hunter Alliance
+    availableRaces[CLASS_WARRIOR].push_back(RACE_ICE_TROLL); // TITLE Demon Hunter Horde
+    availableRaces[CLASS_WARRIOR].push_back(RACE_GOBLIN); // TITLE Goblin
     if(expansion >= EXPANSION_THE_BURNING_CRUSADE)
     {
         availableRaces[CLASS_WARRIOR].push_back(RACE_DRAENEI);
@@ -33,6 +43,8 @@ RandomPlayerbotFactory::RandomPlayerbotFactory(uint32 accountId) : accountId(acc
 
     availableRaces[CLASS_PALADIN].push_back(RACE_HUMAN);
     availableRaces[CLASS_PALADIN].push_back(RACE_DWARF);
+    availableRaces[CLASS_PALADIN].push_back(RACE_TAUNKA); // TITLE Lightforged Draenei
+    availableRaces[CLASS_WARRIOR].push_back(RACE_TAUREN);
     if(expansion >= EXPANSION_THE_BURNING_CRUSADE)
     {
         availableRaces[CLASS_PALADIN].push_back(RACE_DRAENEI);
@@ -45,6 +57,16 @@ RandomPlayerbotFactory::RandomPlayerbotFactory(uint32 accountId) : accountId(acc
     availableRaces[CLASS_ROGUE].push_back(RACE_GNOME);
     availableRaces[CLASS_ROGUE].push_back(RACE_ORC);
     availableRaces[CLASS_ROGUE].push_back(RACE_TROLL);
+    availableRaces[CLASS_ROGUE].push_back(RACE_FEL_ORC); // TITLE Void Elf
+    availableRaces[CLASS_ROGUE].push_back(RACE_VRYKUL); // TITLE Worgen
+    availableRaces[CLASS_ROGUE].push_back(RACE_TUSKARR); // TITLE Pandaren Alliance
+    availableRaces[CLASS_ROGUE].push_back(RACE_NORTHREND_SKELETON); // TITLE Demon Hunter Alliance
+    availableRaces[CLASS_ROGUE].push_back(RACE_ICE_TROLL); // TITLE Demon Hunter Horde
+    availableRaces[CLASS_ROGUE].push_back(RACE_NAGA); // TITLE Vulpera
+    availableRaces[CLASS_ROGUE].push_back(RACE_BROKEN); // TITLE Nightborne
+    availableRaces[CLASS_ROGUE].push_back(RACE_SKELETON); // TITLE Pandaren Horde
+    availableRaces[CLASS_ROGUE].push_back(RACE_GOBLIN); // TITLE Goblin
+
     if(expansion >= EXPANSION_THE_BURNING_CRUSADE)
     {
         availableRaces[CLASS_ROGUE].push_back(RACE_BLOODELF);
@@ -56,6 +78,15 @@ RandomPlayerbotFactory::RandomPlayerbotFactory(uint32 accountId) : accountId(acc
     availableRaces[CLASS_PRIEST].push_back(RACE_TROLL);
     availableRaces[CLASS_PRIEST].push_back(RACE_UNDEAD_PLAYER);
     availableRaces[CLASS_PRIEST].push_back(RACE_DRAENEI);
+    availableRaces[CLASS_PRIEST].push_back(RACE_GNOME);
+    availableRaces[CLASS_PRIEST].push_back(RACE_FEL_ORC); // TITLE Void Elf
+    availableRaces[CLASS_PRIEST].push_back(RACE_VRYKUL); // TITLE Worgen
+    availableRaces[CLASS_PRIEST].push_back(RACE_TUSKARR); // TITLE Pandaren Alliance
+    availableRaces[CLASS_PRIEST].push_back(RACE_TAUNKA); // TITLE Lightforged Draenei
+    availableRaces[CLASS_PRIEST].push_back(RACE_SKELETON); // TITLE Pandaren Horde
+    availableRaces[CLASS_PRIEST].push_back(RACE_NAGA); // TITLE Vulpera
+    availableRaces[CLASS_PRIEST].push_back(RACE_GOBLIN); // TITLE Goblin
+    availableRaces[CLASS_PRIEST].push_back(RACE_BROKEN); // TITLE Nightborne
     if(expansion >= EXPANSION_THE_BURNING_CRUSADE)
     {
         availableRaces[CLASS_PRIEST].push_back(RACE_BLOODELF);
@@ -65,6 +96,18 @@ RandomPlayerbotFactory::RandomPlayerbotFactory(uint32 accountId) : accountId(acc
     availableRaces[CLASS_MAGE].push_back(RACE_GNOME);
     availableRaces[CLASS_MAGE].push_back(RACE_UNDEAD_PLAYER);
     availableRaces[CLASS_MAGE].push_back(RACE_TROLL);
+    availableRaces[CLASS_MAGE].push_back(RACE_NIGHTELF);
+    availableRaces[CLASS_MAGE].push_back(RACE_DWARF);
+    availableRaces[CLASS_MAGE].push_back(RACE_FEL_ORC); // TITLE Void Elf
+    availableRaces[CLASS_MAGE].push_back(RACE_VRYKUL); // TITLE Worgen
+    availableRaces[CLASS_MAGE].push_back(RACE_TUSKARR); // TITLE Pandaren Alliance
+    availableRaces[CLASS_MAGE].push_back(RACE_TAUNKA); // TITLE Lightforged Draenei
+    availableRaces[CLASS_MAGE].push_back(RACE_SKELETON); // TITLE Pandaren Horde
+    availableRaces[CLASS_MAGE].push_back(RACE_GOBLIN); // TITLE Goblin
+    availableRaces[CLASS_MAGE].push_back(RACE_BROKEN); // TITLE Nightborne
+    availableRaces[CLASS_MAGE].push_back(RACE_NORTHREND_SKELETON); // TITLE Demon Hunter Alliance
+    availableRaces[CLASS_MAGE].push_back(RACE_ICE_TROLL); // TITLE Demon Hunter Horde
+    availableRaces[CLASS_MAGE].push_back(RACE_NAGA); // TITLE Vulpera
     if(expansion >= EXPANSION_THE_BURNING_CRUSADE)
     {
         availableRaces[CLASS_MAGE].push_back(RACE_DRAENEI);
@@ -75,6 +118,15 @@ RandomPlayerbotFactory::RandomPlayerbotFactory(uint32 accountId) : accountId(acc
     availableRaces[CLASS_WARLOCK].push_back(RACE_GNOME);
     availableRaces[CLASS_WARLOCK].push_back(RACE_UNDEAD_PLAYER);
     availableRaces[CLASS_WARLOCK].push_back(RACE_ORC);
+    availableRaces[CLASS_WARLOCK].push_back(RACE_DWARF);
+    availableRaces[CLASS_WARLOCK].push_back(RACE_FEL_ORC); // TITLE Void Elf
+    availableRaces[CLASS_WARLOCK].push_back(RACE_VRYKUL); // TITLE Worgen
+    availableRaces[CLASS_WARLOCK].push_back(RACE_NORTHREND_SKELETON); // TITLE Demon Hunter Alliance
+    availableRaces[CLASS_WARLOCK].push_back(RACE_ICE_TROLL); // TITLE Demon Hunter Horde
+    availableRaces[CLASS_WARLOCK].push_back(RACE_BROKEN); // TITLE Nightborne
+    availableRaces[CLASS_WARLOCK].push_back(RACE_GOBLIN); // TITLE Goblin
+    availableRaces[CLASS_WARLOCK].push_back(RACE_NAGA); // TITLE Vulpera
+    availableRaces[CLASS_WARLOCK].push_back(RACE_TROLL);
     if(expansion >= EXPANSION_THE_BURNING_CRUSADE)
     {
         availableRaces[CLASS_WARLOCK].push_back(RACE_BLOODELF);
@@ -83,6 +135,11 @@ RandomPlayerbotFactory::RandomPlayerbotFactory(uint32 accountId) : accountId(acc
     availableRaces[CLASS_SHAMAN].push_back(RACE_ORC);
     availableRaces[CLASS_SHAMAN].push_back(RACE_TAUREN);
     availableRaces[CLASS_SHAMAN].push_back(RACE_TROLL);
+    availableRaces[CLASS_SHAMAN].push_back(RACE_DWARF);
+    availableRaces[CLASS_SHAMAN].push_back(RACE_GOBLIN); // TITLE Goblin
+    availableRaces[CLASS_SHAMAN].push_back(RACE_NAGA); // TITLE Vulpera
+    availableRaces[CLASS_SHAMAN].push_back(RACE_SKELETON); // TITLE Pandaren Horde
+    availableRaces[CLASS_SHAMAN].push_back(RACE_TUSKARR); // TITLE Pandaren Alliance
     if(expansion >= EXPANSION_THE_BURNING_CRUSADE)
     {
         availableRaces[CLASS_SHAMAN].push_back(RACE_DRAENEI);
@@ -93,6 +150,19 @@ RandomPlayerbotFactory::RandomPlayerbotFactory(uint32 accountId) : accountId(acc
     availableRaces[CLASS_HUNTER].push_back(RACE_ORC);
     availableRaces[CLASS_HUNTER].push_back(RACE_TAUREN);
     availableRaces[CLASS_HUNTER].push_back(RACE_TROLL);
+    availableRaces[CLASS_HUNTER].push_back(RACE_HUMAN);
+    availableRaces[CLASS_HUNTER].push_back(RACE_GNOME);
+    availableRaces[CLASS_HUNTER].push_back(RACE_TUSKARR); // TITLE Pandaren Alliance
+    availableRaces[CLASS_HUNTER].push_back(RACE_VRYKUL); // TITLE Worgen
+    availableRaces[CLASS_HUNTER].push_back(RACE_TAUNKA); // TITLE Lightforged Draenei
+    availableRaces[CLASS_HUNTER].push_back(RACE_NORTHREND_SKELETON); // TITLE Demon Hunter Alliance
+    availableRaces[CLASS_HUNTER].push_back(RACE_FEL_ORC); // TITLE Void Elf
+    availableRaces[CLASS_HUNTER].push_back(RACE_GOBLIN); // TITLE Goblin
+    availableRaces[CLASS_HUNTER].push_back(RACE_SKELETON); // TITLE Pandaren Horde
+    availableRaces[CLASS_HUNTER].push_back(RACE_NAGA); // TITLE Vulpera
+    availableRaces[CLASS_HUNTER].push_back(RACE_ICE_TROLL); // TITLE Demon Hunter Horde
+    availableRaces[CLASS_HUNTER].push_back(RACE_BROKEN); // TITLE Nightborne
+    availableRaces[CLASS_HUNTER].push_back(RACE_UNDEAD_PLAYER);
     if(expansion >= EXPANSION_THE_BURNING_CRUSADE)
     {
         availableRaces[CLASS_HUNTER].push_back(RACE_DRAENEI);
@@ -101,6 +171,9 @@ RandomPlayerbotFactory::RandomPlayerbotFactory(uint32 accountId) : accountId(acc
 
     availableRaces[CLASS_DRUID].push_back(RACE_NIGHTELF);
     availableRaces[CLASS_DRUID].push_back(RACE_TAUREN);
+    availableRaces[CLASS_DRUID].push_back(RACE_VRYKUL); // TITLE Worgen
+    availableRaces[CLASS_DRUID].push_back(RACE_TROLL);
+    
 
     if (expansion == EXPANSION_WRATH_OF_THE_LICH_KING)
     {
