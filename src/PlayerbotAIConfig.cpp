@@ -172,6 +172,16 @@ bool PlayerbotAIConfig::Initialize()
             std::ostringstream os; 
             os << "AiPlayerbot.PremadeSpecName." << cls << "." << spec;
             premadeSpecName[cls][spec] = sConfigMgr->GetOption<std::string>(os.str().c_str(), "", false);
+            os.str("");
+            os.clear();
+            os << "AiPlayerbot.PremadeSpecGlyph." << cls << "." << spec;
+            premadeSpecGlyph[cls][spec] = sConfigMgr->GetOption<std::string>(os.str().c_str(), "", false);
+            std::vector<std::string> splitSpecGlyph = split(premadeSpecGlyph[cls][spec], ',');
+            for (std::string &split : splitSpecGlyph) {
+                if (split.size() != 0) {
+                    parsedSpecGlyph[cls][spec].push_back(atoi(split.c_str()));
+                }
+            }
             for (uint32 level = 0; level < MAX_LEVEL; ++level) {
                 std::ostringstream os;
                 os << "AiPlayerbot.PremadeSpecLink." << cls << "." << spec << "." << level;
@@ -259,6 +269,7 @@ bool PlayerbotAIConfig::Initialize()
     autoInitOnly = sConfigMgr->GetOption<bool>("AiPlayerbot.AutoInitOnly", false);
     autoInitEquipLevelLimitRatio = sConfigMgr->GetOption<float>("AiPlayerbot.AutoInitEquipLevelLimitRatio", 1.0);
     addClassCommand = sConfigMgr->GetOption<int32>("AiPlayerbot.AddClassCommand", 1);
+    maintenanceCommand = sConfigMgr->GetOption<int32>("AiPlayerbot.MaintenanceCommand", 1);
 
     playerbotsXPrate = sConfigMgr->GetOption<int32>("AiPlayerbot.KillXPRate", 1);
     botActiveAlone = sConfigMgr->GetOption<int32>("AiPlayerbot.BotActiveAlone", 10);
