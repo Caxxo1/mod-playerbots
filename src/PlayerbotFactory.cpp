@@ -2464,49 +2464,90 @@ void PlayerbotFactory::InitMounts()
     std::map<uint8, std::map<uint32, std::vector<uint32>>> mounts;
     std::vector<uint32> slow, fast, fslow, ffast;
 
-    switch (bot->getRace())
-    {
-        case RACE_HUMAN:
-            slow = { 470, 6648, 458, 472 };
-            fast = { 23228, 23227, 23229 };
-            break;
-        case RACE_ORC:
-            slow = { 6654, 6653, 580 };
-            fast = { 23250, 23252, 23251 };
-            break;
-        case RACE_DWARF:
-            slow = { 6899, 6777, 6898 };
-            fast = { 23238, 23239, 23240 };
-            break;
-        case RACE_NIGHTELF:
-            slow = { 10789, 8394, 10793 };
-            fast = { 24252, 63637, 22723 };
-            break;
-        case RACE_UNDEAD_PLAYER:
-            slow = { 17463, 17464, 17462 };
-            fast = { 17465, 23246, 66846 };
-            break;
-        case RACE_TAUREN:
-            slow = { 18990, 18989, 64657 };
-            fast = { 23249, 23248, 23247 };
-            break;
-        case RACE_GNOME:
-            slow = { 10969, 17453, 10873, 17454 };
-            fast = { 23225, 23223, 23222 };
-            break;
-        case RACE_TROLL:
-            slow = { 10796, 10799, 8395, 472 };
-            fast = { 23241, 23242, 23243 };
-            break;
-        case RACE_DRAENEI:
-            slow = { 34406, 35711, 35710 };
-            fast = { 35713, 35712, 35714 };
-            break;
-        case RACE_BLOODELF:
-            slow = { 33660, 35020, 35022, 35018 };
-            fast = { 35025, 35025, 35027 };
-            break;
-    }
+     switch (bot->getRace())
+ {
+     case RACE_HUMAN:
+         slow = { 470, 6648, 458, 472 };
+         fast = { 23228, 23227, 23229 };
+         break;
+     case RACE_ORC:
+         slow = { 6654, 6653, 580 };
+         fast = { 23250, 23252, 23251 };
+         break;
+     case RACE_DWARF:
+         slow = { 6899, 6777, 6898 };
+         fast = { 23238, 23239, 23240 };
+         break;
+     case RACE_NIGHTELF:
+         slow = { 10789, 8394, 10793 };
+         fast = { 24252, 63637, 22723 };
+         break;
+     case RACE_UNDEAD_PLAYER:
+         slow = { 17463, 17464, 17462 };
+         fast = { 17465, 23246, 66846 };
+         break;
+     case RACE_TAUREN:
+         slow = { 18990, 18989, 64657 };
+         fast = { 23249, 23248, 23247 };
+         break;
+     case RACE_GNOME:
+         slow = { 10969, 17453, 10873, 17454 };
+         fast = { 23225, 23223, 23222 };
+         break;
+     case RACE_TROLL:
+         slow = { 10796, 10799, 8395, 472 };
+         fast = { 23241, 23242, 23243 };
+         break;
+     case RACE_DRAENEI:
+         slow = { 34406, 35711, 35710 };
+         fast = { 35713, 35712, 35714 };
+         break;
+     case RACE_BLOODELF:
+         slow = { 33660, 35020, 35022, 35018 };
+         fast = { 35025, 35025, 35027 };
+         break;
+     case RACE_GOBLIN:
+         slow = { 6654, 6653, 580 };
+         fast = { 23250, 23252, 23251 };
+         break;
+     case RACE_FEL_ORC: 
+         slow = { 33660, 35020, 35022, 35018 };
+         fast = { 35025, 35025, 35027 };
+         break;
+     case RACE_NAGA:
+         slow = { 10796, 10799, 8395, 472 };
+         fast = { 23241, 23242, 23243 };
+         break;
+     case RACE_BROKEN:
+         slow = { 10789, 8394, 10793 };
+         fast = { 24252, 63637, 22723 };
+         break;
+     case RACE_SKELETON:
+         slow = { 18990, 18989, 64657 };
+         fast = { 23249, 23248, 23247 };
+         break;
+     case RACE_VRYKUL:
+         slow = { 470, 6648, 458, 472 };
+         fast = { 23228, 23227, 23229 };
+         break;
+     case RACE_TUSKARR:
+         slow = { 6899, 6777, 6898 };
+         fast = { 23238, 23239, 23240 };
+         break;
+     case RACE_TAUNKA:
+         slow = { 34406, 35711, 35710 };
+         fast = { 35713, 35712, 35714 };
+         break;
+     case RACE_NORTHREND_SKELETON:
+         slow = { 10789, 8394, 10793 };
+         fast = { 24252, 63637, 22723 };
+         break;
+     case RACE_ICE_TROLL:
+         slow = { 33660, 35020, 35022, 35018 };
+         fast = { 35025, 35025, 35027 };
+         break;
+
+ }
 
     switch (bot->GetTeamId())
     {
