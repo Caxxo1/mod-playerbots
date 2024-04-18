@@ -28,6 +28,7 @@
 #include "PlayerbotMgr.h"
 #include "PointMovementGenerator.h"
 #include "PositionValue.h"
+#include "ScriptMgr.h"
 #include "ServerFacade.h"
 #include "SharedDefines.h"
 #include "SocialMgr.h"
@@ -1373,6 +1374,11 @@ bool PlayerbotAI::IsRanged(Player* player)
     return true;
 }
 
+bool PlayerbotAI::IsMelee(Player *player)
+{
+    return !IsRanged(player);
+}
+
 bool PlayerbotAI::IsCaster(Player* player)
 {
     return IsRanged(player) && player->getClass() != CLASS_HUNTER;
@@ -1382,7 +1388,7 @@ bool PlayerbotAI::IsCombo(Player* player)
 {
     int tab = AiFactory::GetPlayerSpecTab(player);
     return player->getClass() == CLASS_ROGUE ||
-        (player->getClass() == CLASS_DRUID && tab == DRUID_TAB_FERAL && !IsTank(bot));
+        (player->getClass() == CLASS_DRUID && player->HasAura(768)); // cat druid
 }
 
 bool PlayerbotAI::IsRangedDps(Player* player)
@@ -1598,7 +1604,7 @@ bool PlayerbotAI::IsTank(Player* player)
             }
             break;
         case CLASS_DRUID:
-            if (tab == DRUID_TAB_FERAL && HasAnyAuraOf(player, "bear form", "dire bear form", "thick hide", NULL)) {
+            if (tab == DRUID_TAB_FERAL && (player->GetShapeshiftForm() == FORM_BEAR || player->GetShapeshiftForm() == FORM_DIREBEAR || player->HasAura(16931))) {
                 return true;
             }
             break;
@@ -1689,7 +1695,7 @@ bool PlayerbotAI::IsDps(Player* player)
 
 bool PlayerbotAI::IsMainTank(Player* player)
 {
-    Group* group = bot->GetGroup();
+    Group* group = player->GetGroup();
     if (!group) {
         return false;
     }
@@ -1831,21 +1837,21 @@ GameObject* PlayerbotAI::GetGameObject(ObjectGuid guid)
     return ObjectAccessor::GetGameObject(*bot, guid);
 }
 
-GameObject* PlayerbotAI::GetGameObject(GameObjectData const* gameObjectData)
-{
-    if (!gameObjectData)
-        return nullptr;
+// GameObject* PlayerbotAI::GetGameObject(GameObjectData const* gameObjectData)
+// {
+//     if (!gameObjectData)
+//         return nullptr;
 
-    Map* map = sMapMgr->FindMap(gameObjectData->mapid, 0);
-    if (!map)
-        return nullptr;
+//     Map* map = sMapMgr->FindMap(gameObjectData->mapid, 0);
+//     if (!map)
+//         return nullptr;
 
-    auto gameobjectBounds = map->GetGameObjectBySpawnIdStore().equal_range(gameObjectData->spawnId);
-    if (gameobjectBounds.first == gameobjectBounds.second)
-        return nullptr;
+//     auto gameobjectBounds = map->GetGameObjectBySpawnIdStore().equal_range(gameObjectData->spawnId);
+//     if (gameobjectBounds.first == gameobjectBounds.second)
+//         return nullptr;
 
-    return gameobjectBounds.first->second;
-}
+//     return gameobjectBounds.first->second;
+// }
 
 WorldObject* PlayerbotAI::GetWorldObject(ObjectGuid guid)
 {
@@ -1878,18 +1884,19 @@ bool PlayerbotAI::TellMasterNoFacing(std::string const text, PlayerbotSecurityLe
         return false;
 
     time_t lastSaid = whispers[text];
-    if (!lastSaid || (time(nullptr) - lastSaid) >= sPlayerbotAIConfig->repeatDelay / 1000)
-    {
-        whispers[text] = time(nullptr);
+    // Yunfan: Remove tell cooldown
+    // if (!lastSaid || (time(nullptr) - lastSaid) >= sPlayerbotAIConfig->repeatDelay / 1000)
+    // {
+    whispers[text] = time(nullptr);
 
-        ChatMsg type = CHAT_MSG_WHISPER;
-        if (currentChat.second - time(nullptr) >= 1)
-            type = currentChat.first;
+    ChatMsg type = CHAT_MSG_WHISPER;
+    if (currentChat.second - time(nullptr) >= 1)
+        type = currentChat.first;
 
-        WorldPacket data;
-        ChatHandler::BuildChatPacket(data, type == CHAT_MSG_ADDON ? CHAT_MSG_PARTY : type, type == CHAT_MSG_ADDON ? LANG_ADDON : LANG_UNIVERSAL, bot, nullptr, text.c_str());
-        master->SendDirectMessage(&data);
-    }
+    WorldPacket data;
+    ChatHandler::BuildChatPacket(data, type == CHAT_MSG_ADDON ? CHAT_MSG_PARTY : type, type == CHAT_MSG_ADDON ? LANG_ADDON : LANG_UNIVERSAL, bot, nullptr, text.c_str());
+    master->SendDirectMessage(&data);
+    // }
 
     return true;
 }
@@ -1986,7 +1993,7 @@ bool PlayerbotAI::HasAura(std::string const name, Unit* unit, bool maxStack, boo
 		{
             SpellInfo const* spellInfo = aurEff->GetSpellInfo();
 
-			std::string const auraName = spellInfo->SpellName[0];
+			std::string_view const auraName = spellInfo->SpellName[0];
 			if (auraName.empty() || auraName.length() != wnamepart.length() || !Utf8FitTo(auraName, wnamepart))
 				continue;
 
@@ -2125,7 +2132,7 @@ bool PlayerbotAI::CanCastSpell(std::string const name, Unit* target, Item* itemT
     return CanCastSpell(aiObjectContext->GetValue<uint32>("spell id", name)->Get(), target, true, itemTarget);
 }
 
-bool PlayerbotAI::CanCastSpell(uint32 spellid, Unit* target, bool checkHasSpell, Item* itemTarget)
+bool PlayerbotAI::CanCastSpell(uint32 spellid, Unit* target, bool checkHasSpell, Item* itemTarget, Item* castItem)
 {
     if (!spellid) {
         if (!sPlayerbotAIConfig->logInGroupOnly || (bot->GetGroup() && HasRealPlayerMaster())) {
@@ -2249,9 +2256,11 @@ bool PlayerbotAI::CanCastSpell(uint32 spellid, Unit* target, bool checkHasSpell,
 	Spell* spell = new Spell(bot, spellInfo, TRIGGERED_NONE);
 
     spell->m_targets.SetUnitTarget(target);
-
-    spell->m_CastItem = itemTarget ? itemTarget : aiObjectContext->GetValue<Item*>("item for spell", spellid)->Get();
-    spell->m_targets.SetItemTarget(spell->m_CastItem);
+    spell->m_CastItem = castItem;
+    if (itemTarget == nullptr) {
+        itemTarget = aiObjectContext->GetValue<Item*>("item for spell", spellid)->Get();;
+    }
+    spell->m_targets.SetItemTarget(itemTarget);
 
     SpellCastResult result = spell->CheckCast(true);
     delete spell;
@@ -3241,7 +3250,7 @@ GuilderType PlayerbotAI::GetGuilderType()
     if (grouperNumber < 80)
         return GuilderType::LARGE;
 
-    return GuilderType::HUGE;
+    return GuilderType::VERY_LARGE;
 }
 
 bool PlayerbotAI::HasPlayerNearby(WorldPosition* pos, float range)
@@ -4379,4 +4388,311 @@ bool PlayerbotAI::EqualLowercaseName(std::string s1, std::string s2)
         }
     }
     return true;
+}
+
+InventoryResult PlayerbotAI::CanEquipItem(uint8 slot, uint16& dest, Item* pItem, bool swap, bool not_loading) const
+{
+    dest = 0;
+    if (pItem)
+    {
+        LOG_DEBUG("entities.player.items", "STORAGE: CanEquipItem slot = {}, item = {}, count = {}", slot, pItem->GetEntry(), pItem->GetCount());
+        ItemTemplate const* pProto = pItem->GetTemplate();
+        if (pProto)
+        {
+            if (!sScriptMgr->CanEquipItem(bot, slot, dest, pItem, swap, not_loading))
+                return EQUIP_ERR_CANT_DO_RIGHT_NOW;
+
+            // item used
+            if (pItem->m_lootGenerated)
+                return EQUIP_ERR_ALREADY_LOOTED;
+
+            if (pItem->IsBindedNotWith(bot))
+                return EQUIP_ERR_DONT_OWN_THAT_ITEM;
+
+            // check count of items (skip for auto move for same player from bank)
+            InventoryResult res = bot->CanTakeMoreSimilarItems(pItem);
+            if (res != EQUIP_ERR_OK)
+                return res;
+
+            ScalingStatDistributionEntry const* ssd = pProto->ScalingStatDistribution ? sScalingStatDistributionStore.LookupEntry(pProto->ScalingStatDistribution) : 0;
+            // check allowed level (extend range to upper values if MaxLevel more or equal max player level, this let GM set high level with 1...max range items)
+            if (ssd && ssd->MaxLevel < DEFAULT_MAX_LEVEL && ssd->MaxLevel < bot->GetLevel())
+                return EQUIP_ERR_ITEM_CANT_BE_EQUIPPED;
+
+            uint8 eslot = FindEquipSlot(pProto, slot, swap);
+            if (eslot == NULL_SLOT)
+                return EQUIP_ERR_ITEM_CANT_BE_EQUIPPED;
+
+            // Xinef: dont allow to equip items on disarmed slot
+            if (!bot->CanUseAttackType(bot->GetAttackBySlot(eslot)))
+                return EQUIP_ERR_NOT_WHILE_DISARMED;
+
+            res = bot->CanUseItem(pItem, not_loading);
+            if (res != EQUIP_ERR_OK)
+                return res;
+
+            if (!swap && bot->GetItemByPos(INVENTORY_SLOT_BAG_0, eslot))
+                return EQUIP_ERR_NO_EQUIPMENT_SLOT_AVAILABLE;
+
+            // if we are swapping 2 equiped items, CanEquipUniqueItem check
+            // should ignore the item we are trying to swap, and not the
+            // destination item. CanEquipUniqueItem should ignore destination
+            // item only when we are swapping weapon from bag
+            uint8 ignore = uint8(NULL_SLOT);
+            switch (eslot)
+            {
+                case EQUIPMENT_SLOT_MAINHAND:
+                    ignore = EQUIPMENT_SLOT_OFFHAND;
+                    break;
+                case EQUIPMENT_SLOT_OFFHAND:
+                    ignore = EQUIPMENT_SLOT_MAINHAND;
+                    break;
+                case EQUIPMENT_SLOT_FINGER1:
+                    ignore = EQUIPMENT_SLOT_FINGER2;
+                    break;
+                case EQUIPMENT_SLOT_FINGER2:
+                    ignore = EQUIPMENT_SLOT_FINGER1;
+                    break;
+                case EQUIPMENT_SLOT_TRINKET1:
+                    ignore = EQUIPMENT_SLOT_TRINKET2;
+                    break;
+                case EQUIPMENT_SLOT_TRINKET2:
+                    ignore = EQUIPMENT_SLOT_TRINKET1;
+                    break;
+            }
+
+            if (ignore == uint8(NULL_SLOT) || pItem != bot->GetItemByPos(INVENTORY_SLOT_BAG_0, ignore))
+                ignore = eslot;
+
+            InventoryResult res2 = bot->CanEquipUniqueItem(pItem, swap ? ignore : uint8(NULL_SLOT));
+            if (res2 != EQUIP_ERR_OK)
+                return res2;
+
+            // check unique-equipped special item classes
+            if (pProto->Class == ITEM_CLASS_QUIVER)
+                for (uint8 i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
+                    if (Item* pBag = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
+                        if (pBag != pItem)
+                            if (ItemTemplate const* pBagProto = pBag->GetTemplate())
+                                if (pBagProto->Class == pProto->Class && (!swap || pBag->GetSlot() != eslot))
+                                    return (pBagProto->SubClass == ITEM_SUBCLASS_AMMO_POUCH)
+                                           ? EQUIP_ERR_CAN_EQUIP_ONLY1_AMMOPOUCH
+                                           : EQUIP_ERR_CAN_EQUIP_ONLY1_QUIVER;
+
+            uint32 type = pProto->InventoryType;
+
+            if (eslot == EQUIPMENT_SLOT_OFFHAND)
+            {
+                // Do not allow polearm to be equipped in the offhand (rare case for the only 1h polearm 41750)
+                // xinef: same for fishing poles
+                if (type == INVTYPE_WEAPON && (pProto->SubClass == ITEM_SUBCLASS_WEAPON_POLEARM || pProto->SubClass == ITEM_SUBCLASS_WEAPON_FISHING_POLE))
+                    return EQUIP_ERR_ITEM_DOESNT_GO_TO_SLOT;
+
+                else if (type == INVTYPE_WEAPON || type == INVTYPE_WEAPONOFFHAND)
+                {
+                    if (!bot->CanDualWield())
+                        return EQUIP_ERR_CANT_DUAL_WIELD;
+                }
+                else if (type == INVTYPE_2HWEAPON)
+                {
+                    if (!bot->CanDualWield() || !bot->CanTitanGrip())
+                        return EQUIP_ERR_CANT_DUAL_WIELD;
+                }
+
+                if (bot->IsTwoHandUsed())
+                    return EQUIP_ERR_CANT_EQUIP_WITH_TWOHANDED;
+            }
+
+            // equip two-hand weapon case (with possible unequip 2 items)
+            if (type == INVTYPE_2HWEAPON)
+            {
+                if (eslot == EQUIPMENT_SLOT_OFFHAND)
+                {
+                    if (!bot->CanTitanGrip())
+                        return EQUIP_ERR_ITEM_CANT_BE_EQUIPPED;
+                }
+                else if (eslot != EQUIPMENT_SLOT_MAINHAND)
+                    return EQUIP_ERR_ITEM_CANT_BE_EQUIPPED;
+
+                if (!bot->CanTitanGrip())
+                {
+                    // offhand item must can be stored in inventory for offhand item and it also must be unequipped
+                    Item* offItem = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND);
+                    ItemPosCountVec off_dest;
+                    if (offItem && (!not_loading ||
+                                    bot->CanUnequipItem(uint16(INVENTORY_SLOT_BAG_0) << 8 | EQUIPMENT_SLOT_OFFHAND, false) != EQUIP_ERR_OK ||
+                                    bot->CanStoreItem(NULL_BAG, NULL_SLOT, off_dest, offItem, false) != EQUIP_ERR_OK))
+                        return swap ? EQUIP_ERR_ITEMS_CANT_BE_SWAPPED : EQUIP_ERR_INVENTORY_FULL;
+                }
+            }
+            dest = ((INVENTORY_SLOT_BAG_0 << 8) | eslot);
+            return EQUIP_ERR_OK;
+        }
+    }
+
+    return !swap ? EQUIP_ERR_ITEM_NOT_FOUND : EQUIP_ERR_ITEMS_CANT_BE_SWAPPED;
+}
+
+uint8 PlayerbotAI::FindEquipSlot(ItemTemplate const* proto, uint32 slot, bool swap) const
+{
+    uint8 slots[4];
+    slots[0] = NULL_SLOT;
+    slots[1] = NULL_SLOT;
+    slots[2] = NULL_SLOT;
+    slots[3] = NULL_SLOT;
+    switch (proto->InventoryType)
+    {
+        case INVTYPE_HEAD:
+            slots[0] = EQUIPMENT_SLOT_HEAD;
+            break;
+        case INVTYPE_NECK:
+            slots[0] = EQUIPMENT_SLOT_NECK;
+            break;
+        case INVTYPE_SHOULDERS:
+            slots[0] = EQUIPMENT_SLOT_SHOULDERS;
+            break;
+        case INVTYPE_BODY:
+            slots[0] = EQUIPMENT_SLOT_BODY;
+            break;
+        case INVTYPE_CHEST:
+        case INVTYPE_ROBE:
+            slots[0] = EQUIPMENT_SLOT_CHEST;
+            break;
+        case INVTYPE_WAIST:
+            slots[0] = EQUIPMENT_SLOT_WAIST;
+            break;
+        case INVTYPE_LEGS:
+            slots[0] = EQUIPMENT_SLOT_LEGS;
+            break;
+        case INVTYPE_FEET:
+            slots[0] = EQUIPMENT_SLOT_FEET;
+            break;
+        case INVTYPE_WRISTS:
+            slots[0] = EQUIPMENT_SLOT_WRISTS;
+            break;
+        case INVTYPE_HANDS:
+            slots[0] = EQUIPMENT_SLOT_HANDS;
+            break;
+        case INVTYPE_FINGER:
+            slots[0] = EQUIPMENT_SLOT_FINGER1;
+            slots[1] = EQUIPMENT_SLOT_FINGER2;
+            break;
+        case INVTYPE_TRINKET:
+            slots[0] = EQUIPMENT_SLOT_TRINKET1;
+            slots[1] = EQUIPMENT_SLOT_TRINKET2;
+            break;
+        case INVTYPE_CLOAK:
+            slots[0] = EQUIPMENT_SLOT_BACK;
+            break;
+        case INVTYPE_WEAPON:
+        {
+            slots[0] = EQUIPMENT_SLOT_MAINHAND;
+
+            // suggest offhand slot only if know dual wielding
+            // (this will be replace mainhand weapon at auto equip instead unwonted "you don't known dual wielding" ...
+            if (bot->CanDualWield())
+                slots[1] = EQUIPMENT_SLOT_OFFHAND;
+            break;
+        }
+        case INVTYPE_SHIELD:
+        case INVTYPE_WEAPONOFFHAND:
+        case INVTYPE_HOLDABLE:
+            slots[0] = EQUIPMENT_SLOT_OFFHAND;
+            break;
+        case INVTYPE_RANGED:
+        case INVTYPE_RANGEDRIGHT:
+        case INVTYPE_THROWN:
+            slots[0] = EQUIPMENT_SLOT_RANGED;
+            break;
+        case INVTYPE_2HWEAPON:
+            slots[0] = EQUIPMENT_SLOT_MAINHAND;
+            if (Item* mhWeapon = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND))
+            {
+                if (ItemTemplate const* mhWeaponProto = mhWeapon->GetTemplate())
+                {
+                    if (mhWeaponProto->SubClass == ITEM_SUBCLASS_WEAPON_POLEARM || mhWeaponProto->SubClass == ITEM_SUBCLASS_WEAPON_STAFF)
+                    {
+                        bot->AutoUnequipOffhandIfNeed(true);
+                        break;
+                    }
+                }
+            }
+
+            if (bot->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND))
+            {
+                if (proto->SubClass == ITEM_SUBCLASS_WEAPON_POLEARM || proto->SubClass == ITEM_SUBCLASS_WEAPON_STAFF)
+                {
+                    break;
+                }
+            }
+            if (bot->CanDualWield() && bot->CanTitanGrip() && proto->SubClass != ITEM_SUBCLASS_WEAPON_POLEARM && proto->SubClass != ITEM_SUBCLASS_WEAPON_STAFF && proto->SubClass != ITEM_SUBCLASS_WEAPON_FISHING_POLE)
+                slots[1] = EQUIPMENT_SLOT_OFFHAND;
+            break;
+        case INVTYPE_TABARD:
+            slots[0] = EQUIPMENT_SLOT_TABARD;
+            break;
+        case INVTYPE_WEAPONMAINHAND:
+            slots[0] = EQUIPMENT_SLOT_MAINHAND;
+            break;
+        case INVTYPE_BAG:
+            slots[0] = INVENTORY_SLOT_BAG_START + 0;
+            slots[1] = INVENTORY_SLOT_BAG_START + 1;
+            slots[2] = INVENTORY_SLOT_BAG_START + 2;
+            slots[3] = INVENTORY_SLOT_BAG_START + 3;
+            break;
+        case INVTYPE_RELIC:
+        {
+            switch (proto->SubClass)
+            {
+                case ITEM_SUBCLASS_ARMOR_LIBRAM:
+                    if (bot->IsClass(CLASS_PALADIN, CLASS_CONTEXT_EQUIP_RELIC))
+                        slots[0] = EQUIPMENT_SLOT_RANGED;
+                    break;
+                case ITEM_SUBCLASS_ARMOR_IDOL:
+                    if (bot->IsClass(CLASS_DRUID, CLASS_CONTEXT_EQUIP_RELIC))
+                        slots[0] = EQUIPMENT_SLOT_RANGED;
+                    break;
+                case ITEM_SUBCLASS_ARMOR_TOTEM:
+                    if (bot->IsClass(CLASS_SHAMAN, CLASS_CONTEXT_EQUIP_RELIC))
+                        slots[0] = EQUIPMENT_SLOT_RANGED;
+                    break;
+                case ITEM_SUBCLASS_ARMOR_MISC:
+                    if (bot->IsClass(CLASS_WARLOCK, CLASS_CONTEXT_EQUIP_RELIC))
+                        slots[0] = EQUIPMENT_SLOT_RANGED;
+                    break;
+                case ITEM_SUBCLASS_ARMOR_SIGIL:
+                    if (bot->IsClass(CLASS_DEATH_KNIGHT, CLASS_CONTEXT_EQUIP_RELIC))
+                        slots[0] = EQUIPMENT_SLOT_RANGED;
+                    break;
+            }
+            break;
+        }
+        default:
+            return NULL_SLOT;
+    }
+
+    if (slot != NULL_SLOT)
+    {
+        if (swap || !bot->GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
+            for (uint8 i = 0; i < 4; ++i)
+                if (slots[i] == slot)
+                    return slot;
+    }
+    else
+    {
+        // search free slot at first
+        for (uint8 i = 0; i < 4; ++i)
+            if (slots[i] != NULL_SLOT && !bot->GetItemByPos(INVENTORY_SLOT_BAG_0, slots[i]))
+                // in case 2hand equipped weapon (without titan grip) offhand slot empty but not free
+                if (slots[i] != EQUIPMENT_SLOT_OFFHAND || !bot->IsTwoHandUsed())
+                    return slots[i];
+
+        // if not found free and can swap return first appropriate from used
+        for (uint8 i = 0; i < 4; ++i)
+            if (slots[i] != NULL_SLOT && swap)
+                return slots[i];
+    }
+
+    // no free position
+    return NULL_SLOT;
 }

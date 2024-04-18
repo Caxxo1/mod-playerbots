@@ -207,6 +207,7 @@ class PaladinAiObjectContextInternal : public NamedObjectContext<Action>
             creators["concentration aura"] = &PaladinAiObjectContextInternal::concentration_aura;
             creators["holy wrath"] = &PaladinAiObjectContextInternal::holy_wrath;
             creators["consecration"] = &PaladinAiObjectContextInternal::consecration;
+            creators["melee consecration"] = &PaladinAiObjectContextInternal::melee_consecration;
             creators["cleanse disease"] = &PaladinAiObjectContextInternal::cleanse_disease;
             creators["cleanse poison"] = &PaladinAiObjectContextInternal::cleanse_poison;
             creators["cleanse magic"] = &PaladinAiObjectContextInternal::cleanse_magic;
@@ -262,6 +263,9 @@ class PaladinAiObjectContextInternal : public NamedObjectContext<Action>
             creators["beacon of light on main tank"] = &PaladinAiObjectContextInternal::beacon_of_light_on_main_tank;
             creators["sacred shield on main tank"] = &PaladinAiObjectContextInternal::sacred_shield_on_main_tank;
             creators["avenging wrath"] = &PaladinAiObjectContextInternal::avenging_wrath;
+            creators["divine illumination"] = &PaladinAiObjectContextInternal::divine_illumination;
+            creators["divine sacrifice"] = &PaladinAiObjectContextInternal::divine_sacrifice;
+            creators["cancel divine sacrifice"] = &PaladinAiObjectContextInternal::cancel_divine_sacrifice;
         }
 
     private:
@@ -288,6 +292,7 @@ class PaladinAiObjectContextInternal : public NamedObjectContext<Action>
         static Action* concentration_aura(PlayerbotAI* botAI) { return new CastConcentrationAuraAction(botAI); }
         static Action* holy_wrath(PlayerbotAI* botAI) { return new CastHolyWrathAction(botAI); }
         static Action* consecration(PlayerbotAI* botAI) { return new CastConsecrationAction(botAI); }
+        static Action* melee_consecration(PlayerbotAI* botAI) { return new CastMeleeConsecrationAction(botAI); }
         static Action* cleanse_poison(PlayerbotAI* botAI) { return new CastCleansePoisonAction(botAI); }
         static Action* cleanse_disease(PlayerbotAI* botAI) { return new CastCleanseDiseaseAction(botAI); }
         static Action* cleanse_magic(PlayerbotAI* botAI) { return new CastCleanseMagicAction(botAI); }
@@ -339,6 +344,9 @@ class PaladinAiObjectContextInternal : public NamedObjectContext<Action>
         static Action* beacon_of_light_on_main_tank(PlayerbotAI* ai) { return new CastBeaconOfLightOnMainTankAction(ai); }
         static Action* sacred_shield_on_main_tank(PlayerbotAI* ai) { return new CastSacredShieldOnMainTankAction(ai); }
         static Action* avenging_wrath(PlayerbotAI* ai) { return new CastAvengingWrathAction(ai); }
+        static Action* divine_illumination(PlayerbotAI* ai) { return new CastDivineIlluminationAction(ai); }
+        static Action* divine_sacrifice(PlayerbotAI* ai) { return new CastDivineSacrificeAction(ai); }
+        static Action* cancel_divine_sacrifice(PlayerbotAI* ai) { return new CastCancelDivineSacrificeAction(ai); }
 };
 
 PaladinAiObjectContext::PaladinAiObjectContext(PlayerbotAI* botAI) : AiObjectContext(botAI)

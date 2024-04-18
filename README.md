@@ -1,3 +1,5 @@
+ [English](README.md) | [Español](README_ES.md) | [中文](README_CN.md)
+
 # Playerbots Module
 
 Welcome to the Playerbots Module for AzerothCore, a work in progress project based on the IKE3 Playerbots. These Playerbots utilize actual player data, allowing you to interact with your own alts, form parties, level up characters, and much more.
@@ -22,7 +24,7 @@ git clone https://github.com/liyunfan1223/mod-playerbots.git --branch=master
 
 For a quick start and an extensive set of commands, you can refer to the manual for the original version of playerbots by ike3. Most of the basic commands are available for this module. You can find the documentation here: [IKE3 Playerbots Documentation](https://ike3.github.io/mangosbot-docs/). Please note that in our module, you need to replace all occurrences of `.bot` with `.playerbot bot` in the documentation.
 
-Please be aware that documentation for newly added commands is currently lacking as the project is still under development. 
+Please be aware that documentation for newly added commands is currently lacking as the project is still under development.
 
 ## Progress
 
@@ -50,20 +52,22 @@ For enhanced control over the bots and to simplify command usage, you can also m
 
 ## Frequently Asked Questions
 
-**Why won't my bot cast spells?**
+**Bots can't cast spells**
 
-- Ensure the presence of the required English DBC file (enUS).
+- Please make sure that the necessary English DBC file (enUS) is present.
 
-**Compilation failed on Windows?**
+**Compilation error**
 
-- Developed primarily on Linux, I may miss cross-platform compilation issues. Feel free to report them.
+- We support for Ubuntu, Windows, and macOS.
 
-- Future plans include implementing an auto build workflow to prevent such issues.
+- Continuous integration workflows have been established. You can review the build status in [GitHub Actions](https://github.com/liyunfan1223/mod-playerbots/actions).
+
+- If the latest build status fails, please revert to the previous commit. We will address the issue ASAP.
 
 ## Acknowledgements
 
-The code for this module is ported from [ZhengPeiRu21/mod-playerbots](https://github.com/ZhengPeiRu21/mod-playerbots) and [celguar/mangosbot-bots](https://github.com/celguar/mangosbot-bots). We extend our gratitude to @ZhengPeiRu21 and @celguar for the continued efforts in maintaining the module. 
+The code for this module is ported from [ZhengPeiRu21/mod-playerbots](https://github.com/ZhengPeiRu21/mod-playerbots) and [celguar/mangosbot-bots](https://github.com/celguar/mangosbot-bots). We extend our gratitude to @ZhengPeiRu21 and @celguar for the continued efforts in maintaining the module.
 
-We also want to express our sincere appreciation to all individuals who have contributed to playerbot development, both in the past and the present. Your dedication and efforts have been instrumental in shaping this project, and we are thankful for your contributions.
- 
+We also want to express our sincere appreciation to all individuals who have contributed to playerbot development. Your dedication and efforts have been instrumental in shaping this project, and we are thankful for your contributions.
+
 

@@ -1,5 +1,3 @@
-# This starter workflow is for a CMake project running on multiple platforms. There is a different starter workflow if you just want a single platform.
-# See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-single-platform.yml
 name: ubuntu-build
 
 on:
@@ -46,8 +44,14 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
         
-    - name: Clone Playerbot Module
-      run: git clone --depth=1 --branch=master https://github.com/liyunfan1223/mod-playerbots.git modules/mod-playerbots
+    # - name: Clone Playerbot Module
+    #   run: git clone --depth=1 --branch=master https://github.com/liyunfan1223/mod-playerbots.git modules/mod-playerbots
+
+    - name: Checkout Playerbot Module
+      uses: actions/checkout@v3
+      with:
+        repository: 'liyunfan1223/mod-playerbots'
+        path: 'modules/mod-playerbots'
     
     - name: Install Requirements
       run: sudo apt-get update && sudo apt-get install git cmake make gcc g++ clang libmysqlclient-dev libssl-dev libbz2-dev libreadline-dev libncurses-dev mysql-server libboost-all-dev

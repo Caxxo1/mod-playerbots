@@ -3,7 +3,10 @@
  */
 
 #include "MovementActions.h"
+#include "GameObject.h"
+#include "Map.h"
 #include "MotionMaster.h"
+#include "MoveSplineInitArgs.h"
 #include "MovementGenerator.h"
 #include "ObjectDefines.h"
 #include "ObjectGuid.h"
@@ -11,6 +14,7 @@
 #include "PlayerbotAIConfig.h"
 #include "Random.h"
 #include "SharedDefines.h"
+#include "SpellInfo.h"
 #include "TargetedMovementGenerator.h"
 #include "Event.h"
 #include "LastMovementValue.h"
@@ -151,29 +155,52 @@ bool MovementAction::MoveTo(uint32 mapId, float x, float y, float z, bool idle, 
     // }
     bool generatePath = !bot->HasAuraType(SPELL_AURA_MOD_INCREASE_MOUNTED_FLIGHT_SPEED) &&
             !bot->IsFlying() && !bot->HasUnitMovementFlag(MOVEMENTFLAG_SWIMMING) && !bot->IsInWater();
-    float modifiedZ = SearchBestGroundZForPath(x, y, z, generatePath, 20.0f, normal_only);
-    if (modifiedZ == INVALID_HEIGHT) {
-        return false;
-    }
-    float distance = bot->GetExactDist(x, y, modifiedZ);
-    if (distance > sPlayerbotAIConfig->contactDistance)
-    {
-        WaitForReach(distance);
-
-        if (bot->IsSitState())
-            bot->SetStandState(UNIT_STAND_STATE_STAND);
-
-        if (bot->IsNonMeleeSpellCast(true))
+    if (!generatePath) {
+        float distance = bot->GetExactDist(x, y, z);
+        if (distance > sPlayerbotAIConfig->contactDistance)
         {
-            bot->CastStop();
-            botAI->InterruptSpell();
+            WaitForReach(distance);
+
+            if (bot->IsSitState())
+                bot->SetStandState(UNIT_STAND_STATE_STAND);
+
+            if (bot->IsNonMeleeSpellCast(true))
+            {
+                bot->CastStop();
+                botAI->InterruptSpell();
+            }
+            MotionMaster &mm = *bot->GetMotionMaster();
+            mm.Clear();
+            mm.MovePoint(mapId, x, y, z, generatePath);
+            AI_VALUE(LastMovement&, "last movement").Set(mapId, x, y, z, bot->GetOrientation());
+            return true;
         }
-        MotionMaster &mm = *bot->GetMotionMaster();
-        
-        mm.Clear();
-        mm.MovePoint(mapId, x, y, modifiedZ, generatePath);
-        AI_VALUE(LastMovement&, "last movement").Set(mapId, x, y, z, bot->GetOrientation());
-        return true;
+    } else {
+        float modifiedZ;
+        Movement::PointsArray path = SearchForBestPath(x, y, z, modifiedZ, sPlayerbotAIConfig->maxMovementSearchTime);
+        if (modifiedZ == INVALID_HEIGHT) {
+            return false;
+        }
+        float distance = bot->GetExactDist(x, y, modifiedZ);
+        if (distance > sPlayerbotAIConfig->contactDistance)
+        {
+            WaitForReach(distance);
+
+            if (bot->IsSitState())
+                bot->SetStandState(UNIT_STAND_STATE_STAND);
+
+            if (bot->IsNonMeleeSpellCast(true))
+            {
+                bot->CastStop();
+                botAI->InterruptSpell();
+            }
+            MotionMaster &mm = *bot->GetMotionMaster();
+            
+            mm.Clear();
+            mm.MoveSplinePath(&path);
+            AI_VALUE(LastMovement&, "last movement").Set(mapId, x, y, z, bot->GetOrientation());
+            return true;
+        }
     }
 
     return false;
@@ -1324,60 +1351,109 @@ bool MovementAction::MoveInside(uint32 mapId, float x, float y, float z, float d
     return MoveNear(mapId, x, y, z, distance);
 }
 
-float MovementAction::SearchBestGroundZForPath(float x, float y, float z, bool generatePath, float range, bool normal_only, float step)
-{
-    if (!generatePath) {
-        return z;
-    }
-    float min_length = 100000.0f;
-    float current_z = INVALID_HEIGHT;
-    float modified_z;
-    float delta;
-    for (delta = 0.0f; delta <= range / 2; delta += step) {
-        modified_z = bot->GetMapWaterOrGroundLevel(x, y, z + delta);
-        PathGenerator gen(bot);
-        gen.CalculatePath(x, y, modified_z);
-        if (gen.GetPathType() == PATHFIND_NORMAL && gen.getPathLength() < min_length) {
-            min_length = gen.getPathLength();
-            current_z = modified_z;
-            if (abs(current_z - z) < 0.5f) {
-                return current_z;
-            }
-        }
-    }
-    for (delta = -step; delta >= -range / 2; delta -= step) {
-        modified_z = bot->GetMapWaterOrGroundLevel(x, y, z + delta);
-        PathGenerator gen(bot);
-        gen.CalculatePath(x, y, modified_z);
-        if (gen.GetPathType() == PATHFIND_NORMAL && gen.getPathLength() < min_length) {
-            min_length = gen.getPathLength();
-            current_z = modified_z;
-            if (abs(current_z - z) < 0.5f) {
-                return current_z;
-            }
-        }
-    }
-    for (delta = range / 2 + step; delta <= range; delta += 2) {
-        modified_z = bot->GetMapWaterOrGroundLevel(x, y, z + delta);
-        PathGenerator gen(bot);
-        gen.CalculatePath(x, y, modified_z);
-        if (gen.GetPathType() == PATHFIND_NORMAL && gen.getPathLength() < min_length) {
-            min_length = gen.getPathLength();
-            current_z = modified_z;
-            if (abs(current_z - z) < 0.5f) {
-                return current_z;
-            }
-        }
-    }
-    if (current_z == INVALID_HEIGHT && normal_only) {
-        return INVALID_HEIGHT;
-    }
-    if (current_z == INVALID_HEIGHT && !normal_only) {
-        return z;
-    }
-    return current_z;
-}
+// float MovementAction::SearchBestGroundZForPath(float x, float y, float z, bool generatePath, float range, bool normal_only, float step)
+// {
+//     if (!generatePath) {
+//         return z;
+//     }
+//     float min_length = 100000.0f;
+//     float current_z = INVALID_HEIGHT;
+//     float modified_z;
+//     float delta;
+//     for (delta = 0.0f; delta <= range / 2; delta += step) {
+//         modified_z = bot->GetMapWaterOrGroundLevel(x, y, z + delta);
+//         PathGenerator gen(bot);
+//         gen.CalculatePath(x, y, modified_z);
+//         if (gen.GetPathType() == PATHFIND_NORMAL && gen.getPathLength() < min_length) {
+//             min_length = gen.getPathLength();
+//             current_z = modified_z;
+//             if (abs(current_z - z) < 0.5f) {
+//                 return current_z;
+//             }
+//         }
+//     }
+//     for (delta = -step; delta >= -range / 2; delta -= step) {
+//         modified_z = bot->GetMapWaterOrGroundLevel(x, y, z + delta);
+//         PathGenerator gen(bot);
+//         gen.CalculatePath(x, y, modified_z);
+//         if (gen.GetPathType() == PATHFIND_NORMAL && gen.getPathLength() < min_length) {
+//             min_length = gen.getPathLength();
+//             current_z = modified_z;
+//             if (abs(current_z - z) < 0.5f) {
+//                 return current_z;
+//             }
+//         }
+//     }
+//     for (delta = range / 2 + step; delta <= range; delta += 2) {
+//         modified_z = bot->GetMapWaterOrGroundLevel(x, y, z + delta);
+//         PathGenerator gen(bot);
+//         gen.CalculatePath(x, y, modified_z);
+//         if (gen.GetPathType() == PATHFIND_NORMAL && gen.getPathLength() < min_length) {
+//             min_length = gen.getPathLength();
+//             current_z = modified_z;
+//             if (abs(current_z - z) < 0.5f) {
+//                 return current_z;
+//             }
+//         }
+//     }
+//     if (current_z == INVALID_HEIGHT && normal_only) {
+//         return INVALID_HEIGHT;
+//     }
+//     if (current_z == INVALID_HEIGHT && !normal_only) {
+//         return z;
+//     }
+//     return current_z;
+// }
     
+const Movement::PointsArray MovementAction::SearchForBestPath(float x, float y, float z, float &modified_z, int maxSearchCount, bool normal_only, float step)
+{
+    bool found = false;
+    modified_z = INVALID_HEIGHT;
+    float tempZ = bot->GetMapWaterOrGroundLevel(x, y, z);
+    PathGenerator gen(bot);
+    gen.CalculatePath(x, y, tempZ);
+    Movement::PointsArray result = gen.GetPath();
+    float min_length = gen.getPathLength();
+    if (gen.GetPathType() == PATHFIND_NORMAL && abs(tempZ - z) < 0.5f) {
+        modified_z = tempZ;
+        return result;
+    }
+    // Start searching
+    if (gen.GetPathType() == PATHFIND_NORMAL) {
+        found = true;
+        modified_z = tempZ;
+    }
+    int count = 1;
+    for (float delta = step; count < maxSearchCount / 2 + 1; count++, delta += step) {
+        tempZ = bot->GetMapWaterOrGroundLevel(x, y, z + delta);
+        PathGenerator gen(bot);
+        gen.CalculatePath(x, y, tempZ);
+        if (gen.GetPathType() == PATHFIND_NORMAL && gen.getPathLength() < min_length) {
+            found = true;
+            min_length = gen.getPathLength();
+            result = gen.GetPath();
+            modified_z = tempZ;
+        }
+    }
+    for (float delta = -step; count < maxSearchCount; count++, delta -= step) {
+        tempZ = bot->GetMapWaterOrGroundLevel(x, y, z + delta);
+        PathGenerator gen(bot);
+        gen.CalculatePath(x, y, tempZ);
+        if (gen.GetPathType() == PATHFIND_NORMAL && gen.getPathLength() < min_length) {
+            found = true;
+            min_length = gen.getPathLength();
+            result = gen.GetPath();
+            modified_z = tempZ;
+        }
+    }
+    if (!found && normal_only) {
+        return Movement::PointsArray{};
+    }
+    if (!found && !normal_only) {
+        return result;
+    }
+    return result;
+}
 
 bool FleeAction::Execute(Event event)
 {
@@ -1407,6 +1483,145 @@ bool FleeWithPetAction::Execute(Event event)
     }
 
     return Flee(AI_VALUE(Unit*, "current target"));
+}
+
+bool AvoidAoeAction::isUseful()
+{
+    GuidVector traps = AI_VALUE(GuidVector, "nearest trap with damage");
+    return AI_VALUE(Aura*, "area debuff") || !traps.empty();
+}
+
+bool AvoidAoeAction::Execute(Event event)
+{
+    // Case #1: Aura with dynamic object (e.g. rain of fire)
+    if (AvoidAuraWithDynamicObj()) {
+        return true;
+    }
+    // Case #2: Trap game object with spell (e.g. lava bomb)
+    if (AvoidGameObjectWithDamage()) {
+        return true;
+    }
+    // Case #3: Trigger npc (e.g. Lesser shadow fissure)
+    return false;
+}
+
+bool AvoidAoeAction::AvoidAuraWithDynamicObj()
+{
+    Aura* aura = AI_VALUE(Aura*, "area debuff");
+    if (!aura) {
+        return false;
+    }
+    const SpellInfo* spellInfo = aura->GetSpellInfo();
+    if (!spellInfo) {
+        return false;
+    }
+    if (!bot->HasAura(spellInfo->Id)) {
+        return false;
+    }
+    DynamicObject* dynOwner = aura->GetDynobjOwner();
+    if (!dynOwner || !dynOwner->IsInWorld()) {
+        return false;
+    }
+    float radius = dynOwner->GetRadius();
+    if (bot->GetDistance(dynOwner) > radius) {
+        return false;
+    }
+    std::ostringstream name;
+    name << "[" << spellInfo->SpellName[0] << "] (aura)";
+    if (FleePostion(dynOwner->GetPosition(), radius, name.str())) {
+        return true;
+    }
+    return false;
+}
+
+bool AvoidAoeAction::AvoidGameObjectWithDamage()
+{
+    GuidVector traps = AI_VALUE(GuidVector, "nearest trap with damage");
+    if (traps.empty()) {
+        return false;
+    }
+    for (ObjectGuid &guid : traps) {
+        GameObject* go = botAI->GetGameObject(guid);
+        if (!go || !go->IsInWorld()) {
+            continue;
+        }
+        if (go->GetGoType() != GAMEOBJECT_TYPE_TRAP)
+        {
+            continue;
+        }
+        const GameObjectTemplate* goInfo = go->GetGOInfo();
+        if (!goInfo)
+        {
+            continue;
+        }
+        uint32 spellId = goInfo->trap.spellId;
+        if (!spellId)
+        {
+            continue;
+        }
+        const SpellInfo* spellInfo = sSpellMgr->GetSpellInfo(spellId);
+        if (spellInfo->IsPositive()) {
+            continue;
+        }
+        float radius = (float)goInfo->trap.diameter / 2;
+        // for (int i = 0; i < MAX_SPELL_EFFECTS; i++) {
+        //     if (spellInfo->Effects[i].Effect == SPELL_EFFECT_APPLY_AURA) {
+        //         if (spellInfo->Effects[i].ApplyAuraName == SPELL_AURA_PERIODIC_DAMAGE) {
+        //             radius = spellInfo->Effects[i].CalcRadius();
+        //             break;
+        //         }
+        //     } else if (spellInfo->Effects[i].Effect == SPELL_EFFECT_SCHOOL_DAMAGE) {
+        //         break;
+        //     }
+        // }
+        if (bot->GetDistance(go) > radius) {
+            return false;
+        }
+        std::ostringstream name;
+        name << "[" << spellInfo->SpellName[0] << "] (object)";
+        if (FleePostion(go->GetPosition(), radius, name.str())) {
+            return true;
+        }
+        
+    }
+    return false;
+}
+
+bool AvoidAoeAction::FleePostion(Position pos, float radius, std::string name)
+{
+    Unit* currentTarget = AI_VALUE(Unit*, "current target");
+    std::vector<float> possibleAngles;
+    if (currentTarget) {
+        float angleLeft = bot->GetAngle(currentTarget) + M_PI / 2;
+        float angleRight = bot->GetAngle(currentTarget) - M_PI / 2;
+        possibleAngles.push_back(angleLeft);
+        possibleAngles.push_back(angleRight);
+    } else {
+        float angleTo = bot->GetAngle(&pos) - M_PI;
+        possibleAngles.push_back(angleTo);
+    }
+    float farestDis = 0.0f;
+    Position bestPos;
+    for (float &angle : possibleAngles) {
+        float fleeDis = sPlayerbotAIConfig->fleeDistance;
+        Position fleePos{bot->GetPositionX() + cos(angle) * fleeDis,
+            bot->GetPositionY() + sin(angle) * fleeDis, 
+            bot->GetPositionZ()};
+        // todo (Yunfan): check carefully
+        if (pos.GetExactDist(fleePos) > farestDis) {
+            farestDis = pos.GetExactDist(fleePos);
+            bestPos = fleePos;
+        }
+    }
+    if (farestDis > 0.0f) {
+        if (MoveTo(bot->GetMapId(), bestPos.GetPositionX(), bestPos.GetPositionY(), bestPos.GetPositionZ(), false, false, true)) {
+            std::ostringstream out;
+            out << "Avoiding spell " << name << "...";
+            bot->Say(out.str(), LANG_UNIVERSAL);
+            return true;
+        }
+    }
+    return false;
 }
 
 bool RunAwayAction::Execute(Event event)

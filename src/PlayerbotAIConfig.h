@@ -23,6 +23,16 @@ enum class BotCheatMask : uint32
     maxMask = 32
 };
 
+enum class HealingManaEfficiency : uint8
+{
+    VERY_LOW    = 1,
+    LOW         = 2,
+    MEDIUM      = 4,
+    HIGH        = 8,
+    VERY_HIGH   = 16,
+    SUPERIOR    = 32
+};
+
 #define MAX_SPECNO 20
 
 class PlayerbotAIConfig
@@ -43,15 +53,19 @@ class PlayerbotAIConfig
         bool IsInPvpProhibitedArea(uint32 id);
 
         bool enabled;
-        bool allowGuildBots;
-        uint32 globalCoolDown, reactDelay, maxWaitForMove, expireActionTime, dispelAuraDuration, passiveDelay, repeatDelay,
+        bool allowGuildBots, allowPlayerBots;
+        uint32 globalCoolDown, reactDelay, maxWaitForMove, maxMovementSearchTime, expireActionTime, 
+            dispelAuraDuration, passiveDelay, repeatDelay,
             errorDelay, rpgDelay, sitDelay, returnDelay, lootDelay;
         float sightDistance, spellDistance, reactDistance, grindDistance, lootDistance, shootDistance,
             fleeDistance, tooCloseDistance, meleeDistance, followDistance, whisperDistance, contactDistance,
             aoeRadius, rpgDistance, targetPosRecalcDistance, farDistance, healDistance, aggroDistance;
         uint32 criticalHealth, lowHealth, mediumHealth, almostFullHealth;
         uint32 lowMana, mediumMana;
-
+        bool autoSaveMana;
+        uint32 saveManaThreshold;
+        bool autoAvoidAoe;
+        
         uint32 openGoSpell;
         bool randomBotAutologin;
         bool botAutologin;
@@ -91,11 +105,11 @@ class PlayerbotAIConfig
         std::string randomBotCombatStrategies, randomBotNonCombatStrategies;
         uint32 randomBotMinLevel, randomBotMaxLevel;
         float randomChangeMultiplier;
-        
-        
+
+
         // std::string premadeLevelSpec[MAX_CLASSES][10][91]; //lvl 10 - 100
         // ClassSpecs classSpecs[MAX_CLASSES];
-        
+
         std::string premadeSpecName[MAX_CLASSES][MAX_SPECNO];
         std::string premadeSpecGlyph[MAX_CLASSES][MAX_SPECNO];
         std::vector<uint32> parsedSpecGlyph[MAX_CLASSES][MAX_SPECNO];
@@ -118,6 +132,7 @@ class PlayerbotAIConfig
         bool randombotsWalkingRPG;
         bool randombotsWalkingRPGInDoors;
         uint32 minEnchantingBotLevel;
+        uint32 limitEnchantExpansion;
         uint32 randombotStartingLevel;
         bool enableRotation;
         uint32 rotationPoolSize;

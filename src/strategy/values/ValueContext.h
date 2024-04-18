@@ -103,12 +103,14 @@ class ValueContext : public NamedObjectContext<UntypedValue>
             creators["nearest game objects no los"] = &ValueContext::nearest_game_objects_no_los;
             creators["closest game objects"] = &ValueContext::closest_game_objects;
             creators["nearest npcs"] = &ValueContext::nearest_npcs;
+            creators["nearest totems"] = &ValueContext::nearest_totems;
             creators["nearest vehicles"] = &ValueContext::nearest_vehicles;
             creators["nearest friendly players"] = &ValueContext::nearest_friendly_players;
             creators["closest friendly players"] = &ValueContext::closest_friendly_players;
             creators["nearest enemy players"] = &ValueContext::nearest_enemy_players;
             creators["possible targets"] = &ValueContext::possible_targets;
             creators["possible targets no los"] = &ValueContext::possible_targets_no_los;
+            creators["possible triggers"] = &ValueContext::possible_triggers;
             creators["possible adds"] = &ValueContext::possible_adds;
             creators["all targets"] = &ValueContext::all_targets;
             creators["possible rpg targets"] = &ValueContext::possible_rpg_targets;
@@ -294,8 +296,10 @@ class ValueContext : public NamedObjectContext<UntypedValue>
             creators["boss target"] = &ValueContext::boss_target;
             creators["nearest triggers"] = &ValueContext::nearest_triggers;
             creators["neglect threat"] = &ValueContext::neglect_threat;
-            creators["expected lifetime"] =  &ValueContext::expected_lifetime;
-            creators["expected group dps"] =  &ValueContext::expected_group_dps;
+            creators["expected lifetime"] = &ValueContext::expected_lifetime;
+            creators["expected group dps"] = &ValueContext::expected_group_dps;
+            creators["area debuff"] = &ValueContext::area_debuff;
+            creators["nearest trap with damage"] = &ValueContext::nearest_trap_with_damange;
         }
 
     private:
@@ -367,6 +371,7 @@ class ValueContext : public NamedObjectContext<UntypedValue>
         static UntypedValue* closest_game_objects(PlayerbotAI* botAI) { return new NearestGameObjects(botAI, INTERACTION_DISTANCE); }
         static UntypedValue* log_level(PlayerbotAI* botAI) { return new LogLevelValue(botAI); }
         static UntypedValue* nearest_npcs(PlayerbotAI* botAI) { return new NearestNpcsValue(botAI); }
+        static UntypedValue* nearest_totems(PlayerbotAI* botAI) { return new NearestTotemsValue(botAI); }
         static UntypedValue* nearest_vehicles(PlayerbotAI* botAI) { return new NearestVehiclesValue(botAI); }
         static UntypedValue* nearest_friendly_players(PlayerbotAI* botAI) { return new NearestFriendlyPlayersValue(botAI); }
         static UntypedValue* closest_friendly_players(PlayerbotAI* botAI) { return new NearestFriendlyPlayersValue(botAI, INTERACTION_DISTANCE); }
@@ -374,6 +379,7 @@ class ValueContext : public NamedObjectContext<UntypedValue>
         static UntypedValue* nearest_corpses(PlayerbotAI* botAI) { return new NearestCorpsesValue(botAI); }
         static UntypedValue* possible_rpg_targets(PlayerbotAI* botAI) { return new PossibleRpgTargetsValue(botAI); }
         static UntypedValue* possible_targets(PlayerbotAI* botAI) { return new PossibleTargetsValue(botAI); }
+        static UntypedValue* possible_triggers(PlayerbotAI* botAI) { return new PossibleTriggersValue(botAI); }
         static UntypedValue* possible_targets_no_los(PlayerbotAI* botAI) { return new PossibleTargetsValue(botAI, "possible targets", sPlayerbotAIConfig->sightDistance, true); }
         static UntypedValue* possible_adds(PlayerbotAI* botAI) { return new PossibleAddsValue(botAI); }
         static UntypedValue* all_targets(PlayerbotAI* botAI) { return new AllTargetsValue(botAI); }
@@ -495,7 +501,8 @@ class ValueContext : public NamedObjectContext<UntypedValue>
         static UntypedValue* neglect_threat(PlayerbotAI* ai) { return new NeglectThreatResetValue(ai); }
         static UntypedValue* expected_lifetime(PlayerbotAI* ai) { return new ExpectedLifetimeValue(ai); }
         static UntypedValue* expected_group_dps(PlayerbotAI* ai) { return new ExpectedGroupDpsValue(ai); }
-        
+        static UntypedValue* area_debuff(PlayerbotAI* ai) { return new AreaDebuffValue(ai); }
+        static UntypedValue* nearest_trap_with_damange(PlayerbotAI* ai) { return new NearestTrapWithDamageValue(ai); }
 };
 
 #endif

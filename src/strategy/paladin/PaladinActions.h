@@ -39,10 +39,16 @@ BUFF_ACTION(CastCrusaderAuraAction, "crusader aura");
 BUFF_ACTION(CastSanctityAuraAction, "sanctity aura");
 
 SPELL_ACTION(CastHolyShockAction, "holy shock");
-HEAL_PARTY_ACTION(CastHolyShockOnPartyAction, "holy shock");
 
 // consecration
 MELEE_ACTION(CastConsecrationAction, "consecration");
+
+class CastMeleeConsecrationAction : public CastSpellAction
+{
+	public:
+		CastMeleeConsecrationAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "consecration") {}
+		bool isUseful() override;
+};
 
 // repentance
 SNARE_ACTION(CastRepentanceSnareAction, "repentance");
@@ -161,10 +167,16 @@ class CastHolyLightAction : public CastHealingSpellAction
         CastHolyLightAction(PlayerbotAI* botAI) : CastHealingSpellAction(botAI, "holy light") { }
 };
 
+class CastHolyShockOnPartyAction : public HealPartyMemberAction
+{
+    public:
+        CastHolyShockOnPartyAction(PlayerbotAI* botAI) : HealPartyMemberAction(botAI, "holy shock", 25.0f, HealingManaEfficiency::LOW) { }
+};
+
 class CastHolyLightOnPartyAction : public HealPartyMemberAction
 {
     public:
-        CastHolyLightOnPartyAction(PlayerbotAI* botAI) : HealPartyMemberAction(botAI, "holy light") { }
+        CastHolyLightOnPartyAction(PlayerbotAI* botAI) : HealPartyMemberAction(botAI, "holy light", 50.0f, HealingManaEfficiency::MEDIUM) { }
 };
 
 class CastFlashOfLightAction : public CastHealingSpellAction
@@ -176,7 +188,7 @@ class CastFlashOfLightAction : public CastHealingSpellAction
 class CastFlashOfLightOnPartyAction : public HealPartyMemberAction
 {
     public:
-        CastFlashOfLightOnPartyAction(PlayerbotAI* botAI) : HealPartyMemberAction(botAI, "flash of light") { }
+        CastFlashOfLightOnPartyAction(PlayerbotAI* botAI) : HealPartyMemberAction(botAI, "flash of light", 15.0f, HealingManaEfficiency::HIGH) { }
 };
 
 class CastLayOnHandsAction : public CastHealingSpellAction
@@ -380,5 +392,26 @@ class CastAvengingWrathAction : public CastBuffSpellAction
 {
 	public:
 		CastAvengingWrathAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "avenging wrath") {}
+};
+
+class CastDivineIlluminationAction : public CastBuffSpellAction
+{
+	public:
+		CastDivineIlluminationAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "divine illumination") {}
+};
+
+class CastDivineSacrificeAction : public CastBuffSpellAction
+{
+	public:
+		CastDivineSacrificeAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "divine sacrifice") {}
+		bool isUseful() override;
+};
+
+class CastCancelDivineSacrificeAction : public Action
+{
+	public:
+		CastCancelDivineSacrificeAction(PlayerbotAI* botAI) : Action(botAI, "cancel divine sacrifice") {}
+		bool Execute(Event event) override;
+		bool isUseful() override;
 };
 #endif

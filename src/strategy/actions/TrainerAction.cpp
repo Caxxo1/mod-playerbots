@@ -165,6 +165,10 @@ bool MaintenanceAction::Execute(Event event)
     factory.InitAvailableSpells();
     factory.InitSkills();
     factory.InitMounts();
+    factory.InitGlyphs(true);
+    if (bot->getLevel() >= sPlayerbotAIConfig->minEnchantingBotLevel) {
+        factory.ApplyEnchantAndGemsNew();
+    }
     bot->DurabilityRepairAll(false, 1.0f, false);
     return true;
 }

@@ -116,6 +116,8 @@ class PlayerbotFactory
 
         static uint32 tradeSkills[];
         static float CalculateItemScore(uint32 item_id, Player* bot);
+        static float CalculateEnchantScore(uint32 enchant_id, Player* bot);
+        static float CalculateSpellScore(uint32 spell_id, Player* bot, uint32 trigger = ITEM_SPELLTRIGGER_ON_EQUIP);
         void InitTalentsTree(bool incremental = false, bool use_template = true, bool reset = false);
         static void InitTalentsBySpecNo(Player* bot, int specNo, bool reset);
         static void InitTalentsByParsedSpecLink(Player* bot, std::vector<std::vector<uint32>> parsedSpecLink, bool reset);
@@ -128,10 +130,11 @@ class PlayerbotFactory
         void InitPetTalents();
         
         void InitReagents();
-        void InitGlyphs();
+        void InitGlyphs(bool increment = false);
         void InitFood();
         void InitMounts();
         void InitBags(bool destroyOld = true);
+        void ApplyEnchantAndGemsNew(bool destoryOld = true);
     private:
         void Prepare();
         // void InitSecondEquipmentSet();
@@ -188,6 +191,8 @@ class PlayerbotFactory
         uint32 gearScoreLimit;
         static std::list<uint32> specialQuestIds;
         std::vector<uint32> trainerIdCache;
+        static std::vector<uint32> enchantSpellIdCache;
+        static std::vector<uint32> enchantGemIdCache;
     protected:
         EnchantContainer m_EnchantContainer;
         Player* bot;
