@@ -125,7 +125,7 @@ AiPlayerbot.LimitEnchantExpansion = 1
 AiPlayerbot.GearScoreCheck = 0
 
 # Quest that will be completed and rewarded to all random bots
-AiPlayerbot.RandomBotQuestIds = "7848,3802,5505,6502,7761"
+AiPlayerbot.RandomBotQuestIds = "7848,3802,5505,6502,7761,10277,10285,11492,24499,24511,24710,24712"
 
 # Randombots will group with nearby bots to do shared quests
 AiPlayerbot.RandomBotGroupNearby = 0
@@ -166,6 +166,18 @@ AiPlayerbot.AddClassCommand = 1
 # Enable/Disable maintenance command, learn all available spells and skills, supplement consumables, repair, etc.
 # default: 1 (enable)
 AiPlayerbot.MaintenanceCommand = 1
+
+# Enable/Disable autogear command, auto upgrade player bots gears, the quality is limited by AutoGearQualityLimit and AutoGearScoreLimit
+# default: 1 (enable)
+AiPlayerbot.AutoGearCommand = 1
+
+# Equips quality limitation for auto gear command (1 = normal, 2 = uncommon, 3 = rare, 4 = epic, 5 = legendary)
+# default: 3 (rare)
+AiPlayerbot.AutoGearQualityLimit = 3
+
+# Equips quality limitation for auto gear command (0 = no limit)
+# default: 0 (no limit)
+AiPlayerbot.AutoGearScoreLimit = 0
 
 # Automation
 
